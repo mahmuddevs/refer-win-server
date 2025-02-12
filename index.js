@@ -2,44 +2,23 @@ import express from 'express'
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import cors from 'cors'
-
 import nodemailer from 'nodemailer'
-import { google } from 'googleapis'
-
-const OAuth2 = google.auth.OAuth2;
 
 const prisma = new PrismaClient();
 const app = express()
 
+//middlewares
 app.use(cors())
 app.use(express.json())
 
-app.get('/', (req, res) => {
-    res.send('Hello World')
-})
 
-const oauth2Client = new OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    process.env.REDIRECT_URI
-);
-
-oauth2Client.setCredentials({
-    refresh_token: process.env.REFRESH_TOKEN,
-});
+//email config
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        type: 'OAuth2',
-        user: process.env.EMAIL,
-        clientId: process.env.CLIENT_ID,
-        clientSecret: process.env.CLIENT_SECRET,
-        refreshToken: process.env.REFRESH_TOKEN,
-        accessToken: async () => {
-            const accessToken = await oauth2Client.getAccessToken();
-            return accessToken;
-        }
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
     },
 });
 
@@ -58,6 +37,13 @@ async function sendEmail(email, courseName, courseLink) {
         console.error('Error sending email:', error);
     }
 }
+
+//routes
+
+app.get('/', (req, res) => {
+    res.send('Hello World')
+})
+
 
 app.post('/add-referal', async (req, res) => {
     const { email, courseName, courseLink } = req.body;
