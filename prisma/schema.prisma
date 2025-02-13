@@ -14,9 +14,11 @@ datasource db {
 }
 
 model Referrals {
-  id         Int      @id @default(autoincrement())
-  email      String   @unique
-  courseName String
-  courseLink String
-  createdAt  DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  referrerName  String
+  referrerEmail String
+  refereeName   String
+  refereeEmail  String
+  courseLink    String
+  createdAt     DateTime @default(now())
 }

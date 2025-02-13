@@ -22,17 +22,18 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-async function sendEmail(email, courseName, courseLink) {
+async function sendEmail(email, referrerName, courseLink) {
     try {
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: 'Referral From A Friend',
-            text: `Hello, you've been referred for the course: ${courseName}! Course Link: ${courseLink}!`,
+            subject: `Referral From ${referrerName}`,
+            text: `Hello, you've been referred for a course:
+            Course Link: ${courseLink}`,
         };
 
-        const result = await transporter.sendMail(mailOptions);
-        console.log('Email sent: ', result);
+        await transporter.sendMail(mailOptions)
+
     } catch (error) {
         console.error('Error sending email:', error);
     }
@@ -46,31 +47,30 @@ app.get('/', (req, res) => {
 
 
 app.post('/add-referal', async (req, res) => {
-    const { email, courseName, courseLink } = req.body;
+    const { referrerName, referrerEmail, refereeName, refereeEmail, courseLink } = req.body;
 
     try {
-        if (!email || !courseName || !courseLink) {
+        if (!referrerName || !referrerEmail || !refereeName || !refereeEmail || !courseLink) {
             return res.status(400).json({ message: "Email, Course Name and Course Link are required" });
         }
 
         const result = await prisma.referrals.create({
             data: {
-                email,
-                courseName,
+                referrerName,
+                referrerEmail,
+                refereeName,
+                refereeEmail,
                 courseLink,
             }
         });
 
         if (result.createdAt) {
-            sendEmail(
-                email,
-                courseName,
-                courseLink)
+            await sendEmail(refereeEmail, referrerName, courseLink);
         }
 
-        await sendEmail(email, courseName, courseLink);
 
-        return res.status(201).json({ message: "Referral added & email sent", data: result });
+
+        return res.status(201).json({ message: "Referral added & email sent", data: result, success: true });
 
     } catch (err) {
         console.error(err);
